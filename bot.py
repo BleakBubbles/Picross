@@ -100,12 +100,25 @@ async def picross(context: lightbulb.Context):
     # create the board by joining the elements of the vertical layout, the elements of the horizontal layout, and the layouts themselves
     # board = '\n'.join(['\n'.join(''.join(i) for i in vlayout), '\n'.join(''.join(j) for j in hlayout)]) 
     
-    # print each row of the board individually so as to bypass the character limit per message
-    await context.respond(''.join(vlayout[0]) + '‎')
-    for i in range(1, len(vlayout)):
-        await bot.rest.create_message(context.channel_id, ''.join(vlayout[i]) + '‎')
-    for i in hlayout:
-        await bot.rest.create_message(context.channel_id, ''.join(i) + '‎')
+    # combine every line to be printed into one list called board
+    board = [''.join(i) + '‎' for i in vlayout] + [''.join(i) + '‎' for i in hlayout]
+    lines = len(board)
+    # declare a list called boardprint to store the lines to be printed
+    boardprint = []
+    # boardprint will contain the lines to be printed, two at a time. Hence, whether or not there is an even or odd number of lines
+    # needs to be accounted for
+    if lines % 2 == 0:
+        for i in range(0, lines, 2):
+            boardprint.append('\n'.join([board[i], board[i+1]]))
+    else:
+        boardprint.append(board[0])
+        for i in range(1, lines, 2):
+            boardprint.append('\n'.join([board[i], board[i+1]]))
+
+    # reply to the user with the first line to be printed and send the rest of the lines in succession
+    await context.respond(boardprint[0])
+    for i in boardprint:
+        await bot.rest.create_message(context.channel_id, i)
 
 #set up the joy command with name and description
 @bot.command
